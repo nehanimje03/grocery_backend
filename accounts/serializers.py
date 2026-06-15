@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import *
 
 
 class SignupSerializer(serializers.ModelSerializer):
@@ -7,7 +7,7 @@ class SignupSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     class Meta:
-        model = User
+        model = CustomUser
         fields = [
             'username',
             'email',

@@ -2,7 +2,6 @@
 import os
 import random
 from datetime import datetime, timedelta
-from twilio.rest import Client
 import re
 import jwt
 
@@ -207,17 +206,3 @@ def image_files_type_validator(request, required_fields):
     return None
 
 
-def send_whatsapp_message(mobile, message):
-    try:
-        mobile = (str(mobile).replace(" ", "").replace("+91", ""))
-        client = Client(settings.TWILIO_ACCOUNT_SID,settings.TWILIO_AUTH_TOKEN)
-
-        client.messages.create(
-            body=message,
-            from_=settings.TWILIO_WHATSAPP_NUMBER,
-            to=f"whatsapp:+91{mobile}"
-        )
-        return True
-
-    except Exception as e:
-        return False
