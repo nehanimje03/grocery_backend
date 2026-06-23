@@ -21,9 +21,7 @@ media/
 Thumbs.db
 
 # migrations
-authentication/migrations
-custom_admin/migrations
-orders/migrations
+accounts/migrations
 products/migrations
 
 # pycache 
