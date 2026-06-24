@@ -15,6 +15,15 @@ class Product(models.Model):
         return self.name
     
 
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name="product_image")
+    image = models.ImageField(upload_to='products/')
+
+    def __str__(self):
+        return f"Image of {self.product.name}"
+
+
+
 class Cart(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='cart')
     is_deleted = models.BooleanField(default=False)

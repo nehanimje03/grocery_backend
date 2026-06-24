@@ -30,3 +30,42 @@ class SMTPMail(models.Model):
 
     class Meta:
         db_table = 'sa_smtp_mail'
+
+
+
+class Address(models.Model):
+    ADDRESS_TYPE_CHOICES = [
+        ('HOME', 'Home'),
+        ('OFFICE', 'Office'),
+        ('OTHER', 'Other'),
+    ]
+
+    user = models.ForeignKey(CustomUser,on_delete=models.CASCADE,related_name='addresses')
+    house_no = models.CharField(max_length=255)
+    area_street = models.CharField(max_length=255)
+    locality = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    pincode = models.CharField(max_length=10)
+    country = models.CharField(max_length=100, default="India")
+    contact_name = models.CharField(max_length=255)
+    contact_no = models.CharField(max_length=15)
+    address_type = models.CharField(max_length=10,choices=ADDRESS_TYPE_CHOICES,default="HOME")
+    is_default = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)
+    created_by = models.ForeignKey(CustomUser,null=True,on_delete=models.SET_NULL,related_name="address_created")
+    updated_by = models.ForeignKey(CustomUser,null=True,on_delete=models.SET_NULL,related_name="address_updated")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "sa_address"
+        ordering = ["-is_default", "-created_at"]
+
+    def save(self, *args, **kwargs):
+        if self.is_default:
+            Address.objects.filter(user=self.user,is_default=True,is_deleted=False).exclude(id=self.id).update(is_default=False)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.house_no}, {self.city} - {self.pincode}"
