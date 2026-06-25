@@ -73,25 +73,6 @@ The Grocery Backend powers product management, inventory, customer accounts, ord
 
 ---
 
-# 🏗 Project Structure
-
-```text
-grocery_backend/
-│
-├── accounts/            # Authentication and user management
-├── products/            # Product APIs
-├── categories/          # Category APIs
-├── cart/                # Shopping cart functionality
-├── orders/              # Order management APIs
-├── wishlist/            # Wishlist functionality
-├── payments/            # Payment integration
-├── notifications/       # Email and notification services
-├── config/              # Project settings
-└── manage.py
-```
-
----
-
 # 🛠 Technology Stack
 
 * Python 3.12+
@@ -275,13 +256,6 @@ Recommended production stack:
 5. Open a Pull Request.
 
 ---
-
-# 📄 License
-
-This project is licensed under the MIT License.
-
----
-
 # 👨‍💻 Author
 
 Developed using Django and Django REST Framework for scalable grocery delivery applications.
