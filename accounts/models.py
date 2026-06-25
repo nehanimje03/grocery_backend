@@ -2,13 +2,51 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
-class CustomUser(AbstractUser):
-    email = models.EmailField(unique=True)
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+# class CustomUser(AbstractUser):
+#     email = models.EmailField(unique=True)
+#     USERNAME_FIELD = 'email'
+#     REQUIRED_FIELDS = ['username']
 
+#     def __str__(self):
+#         return self.email
+
+
+class CustomUser(AbstractUser):
+    username = models.CharField(max_length=150, unique=True)
+    email = models.EmailField(unique=True)
+    full_name = models.CharField(max_length=255, blank=True, null=True)
+    contact_number = models.CharField(max_length=15, blank=True, null=True)
+    alternate_contact_number = models.CharField(max_length=15, blank=True, null=True)
+    verify_code = models.CharField(max_length=128, blank=True, null=True)
+    verify_code_expire_at = models.DateTimeField(blank=True, null=True)
+    is_verify = models.BooleanField(default=False)
+    profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username"]
+    
+    class Meta:
+        db_table = "sa_custom_user"
+        ordering = ['-created_at']
+    
     def __str__(self):
         return self.email
+    
+    def get_full_name(self):
+        return self.full_name or self.username
+    
+    def get_default_address(self):
+        return self.addresses.filter(is_default=True, is_deleted=False).first()
+    
+    def get_all_addresses(self):
+        return self.addresses.filter(is_deleted=False)
+
+
     
 
 class SMTPMail(models.Model):
