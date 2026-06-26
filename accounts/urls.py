@@ -2,8 +2,9 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
+from accounts.Apis.auth import *
+
 # Local Project Imports
-from .APIs.auth import *
 
 urlpatterns = [
     path('signup/', SignUpAPIView.as_view()),

@@ -4,15 +4,27 @@ from django.db.models import Q
 
 class Product(models.Model):
     name = models.CharField(max_length=200)
-    image = models.ImageField(upload_to='products/')
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    old_price = models.DecimalField(max_digits=10, decimal_places=2)
-    rating = models.FloatField(default=0)
-    category = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=10, decimal_places=2)  
+    description = models.TextField(blank=True)    
+    category = models.CharField(max_length=100, blank=True, null=True)
+    subcategory = models.CharField(max_length=100, blank=True, null=True)
+    sizes = models.CharField(max_length=200, blank=True, null=True)
+    stock = models.IntegerField(default=0)
+    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     is_popular = models.BooleanField(default=False)
-
+    is_deactive = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)
+    created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='product_created')
+    updated_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='product_updated')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'sa_product'
+        
     def __str__(self):
         return self.name
+
     
 
 class ProductImage(models.Model):
@@ -58,8 +70,7 @@ class CartItem(models.Model):
         related_name='items'
     )
 
-    product = models.ForeignKey(
-        'products.Product',
+    product = models.ForeignKey(Product,
         on_delete=models.CASCADE
     )
 
