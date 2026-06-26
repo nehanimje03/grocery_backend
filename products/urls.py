@@ -10,8 +10,6 @@ urlpatterns = [
     path('products-detail/', PublicProductDetailAPIView.as_view()),
     path('related-products/', PublicProductDetailAPIView.as_view()),
     path('all-products/', PublicProductsAPIView.as_view()),
-    path('latest-products/', PublicProductsAPIView.as_view()),
-    path('bestseller-products/', PublicProductsAPIView.as_view()),
     path('popular-products/', PublicProductsAPIView.as_view()),
 
 
