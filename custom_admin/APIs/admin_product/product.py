@@ -27,8 +27,7 @@ class ProductApiView(APIView):
             price = request.data.get("price")
             description = request.data.get("description", "")
             stock = request.data.get("stock", 0)
-            is_bestseller = str(request.data.get("is_bestseller", False)).lower() == "true"
-            is_latest_arrival = str(request.data.get("is_latest_arrival", False)).lower() == "true"
+            is_popular = str(request.data.get("is_popular", False)).lower() == "true"            
             product_images = request.FILES.getlist("product_image")
             category = request.data.get("category")
             subcategory = request.data.get("subcategory")
@@ -71,8 +70,7 @@ class ProductApiView(APIView):
                     price=price,
                     description=description,
                     stock=stock,
-                    is_bestseller=is_bestseller,
-                    is_latest_arrival=is_latest_arrival,
+                    is_popular=is_popular,
                     created_by=request.user,
                     category=category,
                     subcategory=subcategory,
@@ -95,9 +93,8 @@ class ProductApiView(APIView):
                         'price': int(product.price) if product.price.is_integer() else float(product.price),                        
                         'description': product.description,
                         'stock': product.stock,
-                        'is_bestseller': product.is_bestseller,
-                        'is_latest_arrival': product.is_latest_arrival,
-                        'is_dea'
+                        'is_popular': product.is_popular,
+                        'is_deactive': product.is_deactive,
                         'category': product.category,
                         'subcategory': product.subcategory,
                         'sizes': [size.strip() for size in product.sizes.split(',')] if product.sizes else [],
@@ -116,8 +113,7 @@ class ProductApiView(APIView):
     def get_product(self, request):
         try:
             product_id = request.data.get('product_id')
-            is_bestseller = request.data.get('is_bestseller')
-            is_latest_arrival = request.data.get('is_latest_arrival')
+            is_popular = request.data.get('is_popular')
             order_by = request.data.get('order_by', "desc")
             search_query = request.data.get('search')
             category = request.data.get('category')
@@ -137,13 +133,9 @@ class ProductApiView(APIView):
             if product_id:
                 queryset = queryset.filter(pk=product_id)
 
-            if is_bestseller:
-                is_bestseller = str(is_bestseller).lower() == "true"
-                queryset = queryset.filter(is_bestseller=is_bestseller)
-
-            if is_latest_arrival:
-                is_latest_arrival = str(is_latest_arrival).lower() == "true"
-                queryset = queryset.filter(is_latest_arrival=is_latest_arrival)
+            if is_popular:
+                is_popular = str(is_popular).lower() == "true"
+                queryset = queryset.filter(is_popular=is_popular)
 
             if category:
                 queryset = queryset.filter(category=category)
@@ -195,8 +187,7 @@ class ProductApiView(APIView):
             price = request.data.get("price")
             description = request.data.get("description")
             stock = request.data.get("stock")
-            is_bestseller = request.data.get("is_bestseller")
-            is_latest_arrival = request.data.get("is_latest_arrival")
+            is_popular = request.data.get("is_popular")
             product_image = request.FILES.getlist("product_image")
             category = request.data.get("category")
             subcategory = request.data.get("subcategory")
@@ -262,11 +253,8 @@ class ProductApiView(APIView):
                 if stock:
                     product.stock = int(stock)
 
-                if is_bestseller:
-                    product.is_bestseller = str(is_bestseller).lower() == "true"
-
-                if is_latest_arrival:
-                    product.is_latest_arrival = str(is_latest_arrival).lower() == "true"
+                if is_popular:
+                    product.is_popular = str(is_popular).lower() == "true"
 
                 if category:
                     product.category = category
@@ -297,8 +285,7 @@ class ProductApiView(APIView):
                     "actual_price": actual_price,
                     "description": product.description,
                     "stock": product.stock,
-                    "is_bestseller": product.is_bestseller,
-                    "is_latest_arrival": product.is_latest_arrival,
+                    "is_popular": product.is_popular,
                     "category": product.category,
                     "subcategory": product.subcategory,
                     "sizes": [size.strip() for size in product.sizes.split(",")] if product.sizes else [],                    
