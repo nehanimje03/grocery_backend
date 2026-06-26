@@ -37,68 +37,157 @@ def construct_email_welcome(user_name, email):
 
 
 
-def construct_email_forgot_password(email, otp):
-    subject = "Reset Your ForeverBuy Password - Secure OTP Inside"
-    
+def construct_reset_password_email(user_name, email, reset_link):
+    subject = "Reset Your Grocery Account Password"
+
     html_body = f"""
+    <!DOCTYPE html>
     <html>
-        <head>
-            <style>
-                body {{ font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #f5f5f7; margin: 0; padding: 30px; }}
-                .email-wrapper {{ max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.08); border: 1px solid #eaeaea; }}
-                .header {{ background: #000000; padding: 28px 20px; text-align: center; }}
-                .header img {{ max-width: 180px; height: auto; }}
-                .header h2 {{ color: #ffffff; font-size: 24px; margin: 12px 0 0 0; font-weight: 600; letter-spacing: -0.3px; }}
-                .content {{ padding: 32px 36px; line-height: 1.6; color: #1e1e2a; }}
-                .greeting {{ font-size: 18px; font-weight: 500; margin-bottom: 16px; }}
-                .message-text {{ color: #4a4a5a; margin-bottom: 20px; }}
-                .otp-container {{ background: #f8f8fc; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0; border: 1px dashed #ccccdd; }}
-                .otp-label {{ font-size: 14px; text-transform: uppercase; letter-spacing: 2px; color: #77778a; margin-bottom: 12px; }}
-                .otp-code {{ font-size: 42px; font-weight: 800; letter-spacing: 12px; color: #000000; font-family: monospace; background: #ffffff; display: inline-block; padding: 8px 20px; border-radius: 12px; border: 1px solid #e0e0e8; }}
-                .validity {{ font-size: 13px; color: #e67e22; margin-top: 12px; font-weight: 500; }}
-                .security-note {{ background: #fff9e8; border-left: 4px solid #f5b042; padding: 14px 18px; margin: 24px 0; font-size: 14px; color: #7d6b3c; border-radius: 8px; }}
-                .footer {{ background: #fafafc; padding: 24px 36px; text-align: center; font-size: 12px; color: #88889a; border-top: 1px solid #efeff4; }}
-                .button {{ background: #000000; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 40px; font-weight: 600; display: inline-block; margin: 12px 0 8px; font-size: 14px; }}
-                .help-text {{ margin-top: 20px; font-size: 13px; color: #66667a; }}
-            </style>
-        </head>
-        <body>
-            <div class="email-wrapper">
-                <div class="header">
-                    <h2>🔐 RESET PASSWORD</h2>
-                </div>
-                <div class="content">
-                    <div class="greeting">Hello,</div>
-                    <div class="message-text">
-                        We received a request to reset the password for your <strong>ForeverBuy</strong> account associated with <strong>{email}</strong>.
-                    </div>
-                    
-                    <div class="otp-container">
-                        <div class="otp-label">Your Secure Verification Code</div>
-                        <div class="otp-code">{otp}</div>
-                        <div class="validity">⏱️ This OTP is valid for 10 minutes</div>
-                    </div>
-                    
-                    <div class="security-note">
-                        ⚠️ <strong>Security Alert:</strong> Never share this OTP with anyone, including anyone claiming to be from ForeverBuy support.
-                    </div>
-                    
-                    <div style="text-align: center;">
-                        <a href="https://foreverbuy.in" class="button">Visit ForeverBuy</a>
-                    </div>
-                    
-                    <div class="help-text">
-                        Didn't request this? You can safely ignore this email. Your password will remain unchanged.
-                        <br><br>
-                        Need help? Contact our support team at <a href="mailto:support@foreverbuy.in" style="color:#000000;">support@foreverbuy.in</a>
-                    </div>
-                </div>
-                <div class="footer">
-                    <p>© 2025 ForeverBuy — Best Deals, Forever Yours</p>
-                    <p>This is an automated transactional email — please do not reply directly.</p>
-                </div>
-            </div>
-        </body>
+    <head>
+        <meta charset="UTF-8">
+        <title>Password Reset</title>
+    </head>
+
+    <body style="
+        margin:0;
+        padding:0;
+        background:#f5f7fa;
+        font-family:Arial,sans-serif;
+    ">
+
+    <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+            <td align="center">
+
+                <table width="600" cellpadding="0" cellspacing="0"
+                       style="
+                            background:#ffffff;
+                            margin:40px auto;
+                            border-radius:16px;
+                            overflow:hidden;
+                            box-shadow:0 4px 20px rgba(0,0,0,0.08);
+                       ">
+
+                    <!-- Header -->
+                    <tr>
+                        <td align="center"
+                            style="
+                                background:#22c55e;
+                                padding:35px;
+                                color:white;
+                            ">
+
+                            <h1 style="margin:0;">
+                                🛒 Grocery Delivery
+                            </h1>
+
+                            <p style="
+                                margin-top:10px;
+                                font-size:16px;
+                            ">
+                                Password Reset Request
+                            </p>
+
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    <tr>
+                        <td style="
+                            padding:40px;
+                            color:#333333;
+                        ">
+
+                            <h2>Hello {user_name},</h2>
+
+                            <p>
+                                We received a request to reset the password
+                                for your Grocery Delivery account associated
+                                with:
+                            </p>
+
+                            <p>
+                                <strong>{email}</strong>
+                            </p>
+
+                            <p>
+                                Click the button below to create a new password.
+                            </p>
+
+                            <div style="
+                                text-align:center;
+                                margin:35px 0;
+                            ">
+
+                                <a href="{reset_link}"
+                                   style="
+                                        background:#22c55e;
+                                        color:white;
+                                        padding:16px 35px;
+                                        text-decoration:none;
+                                        border-radius:8px;
+                                        font-size:16px;
+                                        font-weight:bold;
+                                   ">
+                                   Reset Password
+                                </a>
+
+                            </div>
+
+                            <p>
+                                This password reset link will expire in
+                                <strong>24 hours</strong>.
+                            </p>
+
+                            <p>
+                                If you didn't request this change,
+                                you can safely ignore this email.
+                            </p>
+
+                            <p>
+                                For security reasons,
+                                your password will remain unchanged until
+                                a new password is created.
+                            </p>
+
+                            <br>
+
+                            <p>
+                                Regards,<br>
+                                <strong>Grocery Delivery Team</strong>
+                            </p>
+
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td align="center"
+                            style="
+                                background:#f8f9fa;
+                                padding:25px;
+                                font-size:12px;
+                                color:#777777;
+                            ">
+
+                            © 2026 Grocery Delivery
+
+                            <br><br>
+
+                            This is an automated email.
+                            Please do not reply directly to this message.
+
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
+    </body>
     </html>
     """
+
     return subject, html_body

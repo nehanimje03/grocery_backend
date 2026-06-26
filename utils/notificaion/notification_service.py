@@ -10,40 +10,53 @@ from rest_framework import status
 from utils.api.error_code import *
 
 
-def send_emails(smtp_config, recipient_email, subject, html_body, plain_text_body=None):
+from django.core.mail import EmailMultiAlternatives
+from django.core.mail.backends.smtp import EmailBackend
+
+
+def send_emails(
+        smtp_config,
+        recipient_email,
+        subject,
+        html_body,
+        plain_text_body=None
+):
     try:
-        if not smtp_config or smtp_config.is_deactive:
-            return Response({'status': 'fail','message': f'{BAD_REQUEST} - SMTP configuration not found or inactive'}, 
-                            status=status.HTTP_400_BAD_REQUEST)
+        if not smtp_config:
+            return False, "SMTP configuration not found"
 
-        use_tls = smtp_config.encryption_type == 'TLS'
-        use_ssl = smtp_config.encryption_type == 'SSL'
+        if smtp_config.is_deactive:
+            return False, "SMTP configuration is inactive"
 
-        email_forever_backend = EmailBackend(
+        email_backend = EmailBackend(
             host=smtp_config.smtp_host,
             port=smtp_config.smtp_port,
             username=smtp_config.smtp_host_user,
             password=smtp_config.smtp_host_password,
-            use_tls=use_tls,
-            use_ssl=use_ssl,
-            fail_silently=False,
+            use_tls=smtp_config.encryption_type == "TLS",
+            use_ssl=smtp_config.encryption_type == "SSL",
+            fail_silently=False
         )
 
-        email = EmailMessage(
+        email = EmailMultiAlternatives(
             subject=subject,
-            body=html_body,
+            body=plain_text_body or "",
             from_email=smtp_config.from_email,
             to=[recipient_email],
-            connection=email_forever_backend
+            connection=email_backend
         )
 
-        email.content_subtype = "html"
+        email.attach_alternative(
+            html_body,
+            "text/html"
+        )
 
-        if plain_text_body:
-            email.attach_alternative(plain_text_body, "text/plain")
-        email.send()
-        return None  
+        result = email.send()
+
+        if result == 1:
+            return True, None
+
+        return False, "Email was not accepted by SMTP server"
 
     except Exception as e:
-        return Response({'status': 'error','message': f'{INTERNAL_SERVER_ERROR} - Failed to send email: {str(e)}'}, 
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return False, str(e)

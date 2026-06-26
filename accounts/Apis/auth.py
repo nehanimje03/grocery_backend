@@ -99,103 +99,213 @@ class RequestResetPasswordAPIView(APIView):
 
     def post(self, request):
         try:
-            email = request.data.get('email').lower()
+            email = request.data.get("email")
 
-            missing = check_missing_fields(request.data, ['email'])
-            if missing:
-                return missing
+            if not email:
+                return Response(
+                    {
+                        "status": "fail",
+                        "message": "Email is required"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-            user = CustomUser.objects.get(email__iexact=email)
+            email = email.strip().lower()
 
-            otp = str(random_otp(6))
+            user = CustomUser.objects.filter(
+                email__iexact=email
+            ).first()
 
-            user.verify_code = make_password(otp)
-            user.verify_code_expire_at = timezone.now() + timedelta(minutes=10)
-            user.save(update_fields=['verify_code', 'verify_code_expire_at'])
+            if not user:
+                return Response(
+                    {
+                        "status": "fail",
+                        "message": "User does not exist"
+                    },
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
-            config = SMTPMail.objects.filter(is_deactive=False).first()
+            smtp_config = SMTPMail.objects.filter(
+                is_deactive=False
+            ).first()
 
-            if not config:
-                return Response({"status": "fail", "message": f"{BAD_REQUEST} - SMTP configuration not found"},
-                                status=status.HTTP_400_BAD_REQUEST)
+            if not smtp_config:
+                return Response(
+                    {
+                        "status": "fail",
+                        "message": "SMTP configuration not found"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-            subject, body = construct_email_forgot_password(email, otp)
-            send_emails(config, email, subject, body)
+            uid = urlsafe_base64_encode(
+                force_bytes(user.pk)
+            )
 
-            response_data = {
-                "status": "success",
-                "message": f"{SUCCESS} - OTP sent successfully",
-                "data": {"otp_expiry_minutes": 10}
-            }
-            return Response(response_data, status=status.HTTP_200_OK)
+            token = PasswordResetTokenGenerator().make_token(
+                user
+            )
 
-        except CustomUser.DoesNotExist:
-            return Response({"status": "fail", "message": f"{NOT_FOUND} - User does not exist"},status=status.HTTP_404_NOT_FOUND)
+            reset_link = (
+                f"http://127.0.0.1:3000/reset-password/"
+                f"{uid}/{token}/"
+            )
+
+            subject = "Reset Your Grocery Account Password"
+
+            html_body = f"""
+            <html>
+            <body>
+                <h2>Password Reset Request</h2>
+
+                <p>Hello {user.first_name or user.email},</p>
+
+                <p>You requested a password reset.</p>
+
+                <p>
+                    Click the button below to reset your password:
+                </p>
+
+                <a href="{reset_link}"
+                   style="
+                       background:#22c55e;
+                       color:white;
+                       padding:12px 20px;
+                       text-decoration:none;
+                       border-radius:5px;
+                       display:inline-block;
+                   ">
+                    Reset Password
+                </a>
+
+                <br><br>
+
+                <p>
+                    If the button does not work, use this link:
+                </p>
+
+                <p>{reset_link}</p>
+
+                <p>
+                    If you did not request this,
+                    please ignore this email.
+                </p>
+
+                <br>
+
+                <p>
+                    Grocery Delivery Team
+                </p>
+            </body>
+            </html>
+            """
+
+            success, error_message = send_emails(
+                smtp_config=smtp_config,
+                recipient_email=user.email,
+                subject=subject,
+                html_body=html_body
+            )
+
+            if not success:
+                return Response(
+                    {
+                        "status": "error",
+                        "message": error_message
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+            return Response(
+                {
+                    "status": "success",
+                    "message": "Password reset link sent successfully"
+                },
+                status=status.HTTP_200_OK
+            )
 
         except Exception as e:
-            return Response({"status": "error", "message": f"{INTERNAL_SERVER_ERROR} - Internal server error: {str(e)}"},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {
+                    "status": "error",
+                    "message": str(e)
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
         
 
-class VerifyOTPAPIView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        try:
-            email = request.data.get('email').lower()
-            otp = request.data.get('otp')
-
-            missing = check_missing_fields(request.data, ['email', 'otp'])
-            if missing:
-                return missing
-
-            user = CustomUser.objects.get(email__iexact=email)
-
-            if not user.verify_code:
-                return Response({"status": "fail", "message": f"{BAD_REQUEST} - OTP not generated"},status=status.HTTP_400_BAD_REQUEST)
-
-            if timezone.now() > user.verify_code_expire_at:
-                return Response({"status": "fail", "message": f"{BAD_REQUEST} - OTP expired"},status=status.HTTP_400_BAD_REQUEST)
-
-            if not check_password(otp, user.verify_code):
-                return Response({"status": "fail", "message": f"{BAD_REQUEST} - Invalid OTP"},status=status.HTTP_400_BAD_REQUEST)
-
-            return Response({"status": "success","message": f"{SUCCESS} - OTP verified"}, status=status.HTTP_200_OK)
-
-        except CustomUser.DoesNotExist:
-            return Response({"status": "fail", "message": f"{NOT_FOUND} - User does not exist"},status=status.HTTP_404_NOT_FOUND)
-        
 
 class ResetPasswordAPIView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
         try:
-            email = request.data.get('email').lower()
-            new_password = request.data.get('new_password')
-            confirm_password = request.data.get('confirm_password')
+            uid = request.data.get("uid")
+            token = request.data.get("token")
+            password = request.data.get("new_password")
+            confirm_password = request.data.get("confirm_password")
 
-            missing = check_missing_fields(request.data, ['email', 'new_password', 'confirm_password'])
-            if missing:
-                return missing
+            if not all([
+                uid,
+                token,
+                password,
+                confirm_password
+            ]):
+                return Response(
+                    {
+                        "status": "fail",
+                        "message": "All fields are required"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-            if new_password != confirm_password:
-                return Response({"status": "fail", "message": f"{BAD_REQUEST} - Password mismatch"},status=status.HTTP_400_BAD_REQUEST)
+            if password != confirm_password:
+                return Response(
+                    {
+                        "status": "fail",
+                        "message": "Passwords do not match"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-            user = CustomUser.objects.get(email__iexact=email)
-            user.set_password(new_password)
+            user_id = force_str(
+                urlsafe_base64_decode(uid)
+            )
 
-            user.verify_code = None
-            user.verify_code_expire_at = None
+            user = CustomUser.objects.get(
+                pk=user_id
+            )
+
+            if not PasswordResetTokenGenerator().check_token(
+                    user,
+                    token
+            ):
+                return Response(
+                    {
+                        "status": "fail",
+                        "message": "Reset link expired or invalid"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            user.set_password(password)
             user.save()
 
-            return Response({"status": "success","message": f"{SUCCESS} - Password reset successfully"}, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "status": "success",
+                    "message": "Password changed successfully"
+                },
+                status=status.HTTP_200_OK
+            )
 
-        except CustomUser.DoesNotExist:
-            return Response({"status": "fail", "message": f"{NOT_FOUND} - User does not exist"},status=status.HTTP_404_NOT_FOUND)
-        
-        except Exception as e:
-            return Response({"status": "error", "message": f"{INTERNAL_SERVER_ERROR} - Internal server error: {str(e)}"},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-
+        except Exception:
+            return Response(
+                {
+                    "status": "fail",
+                    "message": "Invalid reset link"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )

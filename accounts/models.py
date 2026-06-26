@@ -17,8 +17,6 @@ class CustomUser(AbstractUser):
     full_name = models.CharField(max_length=255, blank=True, null=True)
     contact_number = models.CharField(max_length=15, blank=True, null=True)
     alternate_contact_number = models.CharField(max_length=15, blank=True, null=True)
-    verify_code = models.CharField(max_length=128, blank=True, null=True)
-    verify_code_expire_at = models.DateTimeField(blank=True, null=True)
     is_verify = models.BooleanField(default=False)
     profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
@@ -45,8 +43,6 @@ class CustomUser(AbstractUser):
     
     def get_all_addresses(self):
         return self.addresses.filter(is_deleted=False)
-
-
     
 
 class SMTPMail(models.Model):
