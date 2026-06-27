@@ -11,6 +11,12 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import stripe,os
+from decouple import config
+from datetime import timedelta
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,6 +48,7 @@ INSTALLED_APPS = [
     'accounts',
     'custom_admin',
     'products',
+    'orders',
 ]
 
 MIDDLEWARE = [
@@ -127,12 +134,36 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ORIGIN_ALLOW_ALL = True
+# CORS Configuration
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://forever-admin-panel-brown.vercel.app",
+    "https://foreverbuy-alpha.vercel.app",
+]
 
+# Rest Framework
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    )
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),   # ✅ 10 minutes
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),      # ✅ 7 days
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+    
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
 }
 
 
@@ -143,3 +174,23 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'nehanimje03@gmail.com'
 EMAIL_HOST_PASSWORD = 'imsk xona rtfg ropu'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_WHATSAPP_NUMBER = os.getenv("TWILIO_WHATSAPP_NUMBER")
+
+FRONTEND_URL = "http://localhost:3000"
+
+STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
+STRIPE_PUBLISHABLE_KEY = config(
+    "STRIPE_PUBLISHABLE_KEY"
+)
+STRIPE_WEBHOOK_SECRET = config(
+    "STRIPE_WEBHOOK_SECRET"
+)
+
+stripe.api_key = STRIPE_SECRET_KEY

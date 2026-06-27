@@ -16,8 +16,7 @@ class ProductFilterAPIView(APIView):
             search = request.GET.get("search")
             min_price = request.GET.get("min_price")
             max_price = request.GET.get("max_price")
-            bestseller = request.GET.get("bestseller")
-            latest = request.GET.get("latest")
+            is_popular = request.GET.get("is_popular")
             in_stock = request.GET.get("in_stock")
             sort_by = request.GET.get("sort_by")
 
@@ -54,11 +53,9 @@ class ProductFilterAPIView(APIView):
             if max_price:
                 products = products.filter(price__lte=max_price)
 
-            if bestseller and bestseller.lower() == "true":
-                products = products.filter(is_bestseller=True)
-
-            if latest and latest.lower() == "true":
-                products = products.filter(is_latest_arrival=True)
+            if is_popular:
+                is_popular = str(is_popular).lower() == "true"
+                products = products.filter(is_popular=is_popular)
 
             if in_stock and in_stock.lower() == "true":
                 products = products.filter(stock__gt=0)

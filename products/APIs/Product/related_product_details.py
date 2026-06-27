@@ -22,9 +22,11 @@ class PublicProductDetailAPIView(APIView):
 
             related = Product.objects.filter(
                 category=product.category,
+                subcategory=product.subcategory,
                 is_deleted=False,
                 is_deactive=False
-            ).exclude(id=product.id).order_by('-is_bestseller', '-created_at')[:8]
+            ).exclude(id=product.id).order_by('-is_popular','-created_at')[:8]
+            
             related_serializer = ProductListSerializer(related, many=True,context={"request": request})
 
             response_data = {
