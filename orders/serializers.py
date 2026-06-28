@@ -1,7 +1,6 @@
 from rest_framework import serializers
-from .models import Order, OrderItem, OrderTracking, Coupon
+from .models import Order, OrderItem, OrderTracking
 from products.serializers import ProductListSerializer
-from authentication.serializers import AddressSerializer
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -33,7 +32,6 @@ class CreateOrderSerializer(serializers.Serializer):
     same_as_shipping = serializers.BooleanField(default=True)
     billing_address_id = serializers.IntegerField(required=False)
     payment_method = serializers.ChoiceField(choices=Order.PAYMENT_METHOD_CHOICES)
-    coupon_code = serializers.CharField(max_length=50,required=False,allow_blank=True)
     order_note = serializers.CharField(required=False,allow_blank=True)
 
 
@@ -67,8 +65,6 @@ class OrderSerializer(serializers.ModelSerializer):
             # Order Summary
             'subtotal',
             'discount_amount',
-            'coupon_code',
-            'coupon_discount',
             'shipping_charge',
             'tax_amount',
             'total_amount',
@@ -163,17 +159,3 @@ class OrderListSerializer(serializers.ModelSerializer):
         ]
 
 
-class CouponSerializer(serializers.ModelSerializer):
-    """Coupon Serializer"""
-    is_valid = serializers.BooleanField(read_only=True)
-    
-    class Meta:
-        model = Coupon
-        fields = '__all__'
-        read_only_fields = ['used_count', 'created_at']
-
-
-class ValidateCouponSerializer(serializers.Serializer):
-    """Validate Coupon Request Serializer"""
-    coupon_code = serializers.CharField(max_length=50)
-    subtotal = serializers.DecimalField(max_digits=10, decimal_places=2)

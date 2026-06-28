@@ -1,5 +1,6 @@
-from django.utils import timezone
 from orders.models import *
+
+
 
 def add_tracking_entry(order, status, description, location=None):
     return OrderTracking.objects.create(
@@ -10,51 +11,17 @@ def add_tracking_entry(order, status, description, location=None):
     )
 
 
-
-
 def calculate_order_summary(
-        cart_items,
-        coupon_code=None,
-        shipping_charge=Decimal("0.00"),
-        tax_rate=Decimal("0.18")
+    cart_items,
+    shipping_charge=Decimal("0.00"),
+    tax_rate=Decimal("0.18")
 ):
-
     subtotal = Decimal("0.00")
 
     for item in cart_items:
         subtotal += item.product.price * item.quantity
 
     discount_amount = Decimal("0.00")
-    coupon_discount = Decimal("0.00")
-    coupon_details = None
-
-    if coupon_code:
-        try:
-            coupon = Coupon.objects.get(
-                code=coupon_code.upper(),
-                is_active=True
-            )
-
-            if coupon.is_valid() and subtotal >= coupon.min_order_amount:
-
-                if coupon.discount_type == 'PERCENTAGE':
-                    coupon_discount = (
-                        subtotal * coupon.discount_value
-                    ) / Decimal("100")
-
-                    if coupon.max_discount_amount:
-                        coupon_discount = min(
-                            coupon_discount,
-                            coupon.max_discount_amount
-                        )
-                else:
-                    coupon_discount = coupon.discount_value
-
-                discount_amount = coupon_discount
-                coupon_details = coupon
-
-        except Coupon.DoesNotExist:
-            pass
 
     taxable_amount = subtotal - discount_amount
 
@@ -70,16 +37,15 @@ def calculate_order_summary(
     return {
         'subtotal': round(subtotal, 2),
         'discount_amount': round(discount_amount, 2),
-        'coupon_code': coupon_code,
-        'coupon_discount': round(coupon_discount, 2),
         'shipping_charge': round(shipping_charge, 2),
         'tax_amount': round(tax_amount, 2),
         'total_amount': round(total_amount, 2),
-        'coupon_details': coupon_details,
     }
 
+
+
+
 def update_order_status(order, new_status, location=None, description=None):
-    """Update order status and add tracking entry"""
     from django.utils import timezone
     
     status_messages = {
@@ -96,7 +62,6 @@ def update_order_status(order, new_status, location=None, description=None):
         'REFUNDED': 'Refund has been processed',
     }
     
-    # Update timestamp fields
     timestamp_fields = {
         'CONFIRMED': 'confirmed_at',
         'PROCESSING': 'processed_at',
@@ -113,6 +78,5 @@ def update_order_status(order, new_status, location=None, description=None):
         setattr(order, timestamp_fields[new_status], timezone.now())
     order.save()
     
-    # Add tracking entry
     desc = description or status_messages.get(new_status, f"Order status updated to {new_status}")
     add_tracking_entry(order, new_status, desc, location)

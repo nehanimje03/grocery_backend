@@ -225,7 +225,6 @@ python manage.py test
 # 📈 Future Enhancements
 
 * Online Payment Integration
-* Coupon and Discount System
 * Real-Time Order Tracking
 * Multi-Vendor Support
 * Delivery Partner Module
