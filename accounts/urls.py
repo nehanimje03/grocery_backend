@@ -2,9 +2,11 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from accounts.Apis.auth import *
-
 # Local Project Imports
+from accounts.Apis.address import *
+from accounts.Apis.auth import *
+from accounts.Apis.profile import *
+
 
 urlpatterns = [
     path('signup/', SignUpAPIView.as_view()),
@@ -13,5 +15,15 @@ urlpatterns = [
     path('request-reset-password/', RequestResetPasswordAPIView.as_view()),
     path('reset-password/', ResetPasswordAPIView.as_view()),
 
+    # user profile
+    path('get-profile/', UserProfileAPIView.as_view()),
+    path('update-profile/', UserProfileAPIView.as_view()),
+
+    # Address
+    path('create-address/', AddressApiView.as_view()),
+    path('get-address/', AddressApiView.as_view()),
+    path('update-address/', AddressApiView.as_view()),
+    path('remove-address/', AddressApiView.as_view()),
+    path('set-default-addresses/', AddressApiView.as_view()),
 
 ]

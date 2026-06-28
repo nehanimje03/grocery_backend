@@ -1,4 +1,4 @@
-from datetime import timezone
+from django.utils import timezone
 from decimal import Decimal
 import random
 import time
@@ -210,3 +210,31 @@ class OrderTracking(models.Model):
         return f"{self.order.order_id} - {self.status} - {self.created_at}"
 
 
+class Notify_Admin(models.Model):
+
+    order = models.ForeignKey(
+        "Order",
+        on_delete=models.CASCADE,
+        related_name="admin_notifications"
+    )
+
+    title = models.CharField(
+        max_length=255
+    )
+
+    message = models.TextField()
+
+    is_read = models.BooleanField(
+        default=False
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    class Meta:
+        db_table = "notify_admin"
+        ordering = ["-id"]
+
+    def __str__(self):
+        return f"{self.title} - {self.order.order_id}"
